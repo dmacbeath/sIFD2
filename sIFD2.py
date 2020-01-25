@@ -3,33 +3,38 @@ from pygame.locals import *
 import sys
 import os
 
-'''
-Objects
-'''
-
 
 class Player(pygame.sprite.Sprite):
-    '''
-    spawn player
-    '''
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
         self.move_x = 0
         self.move_y = 0
         self.frame = 0
-        self.images = []
+        self.images_idle = []
+        self.facing = 0
+        # empty list for right animations
+        self.images_run = []
+        # img scaling factor
+        scale = 5
 
-        for i in range(0, 3):
-            img = pygame.image.load(os.path.join('images', 'spr_' + str(i) + '.png')).convert()
+        for i in range(0, 6):
+            img = pygame.image.load(os.path.join('images', 'knight_idle_anim_f' + str(i) + '.png')).convert()
             img.convert_alpha()
-            img.set_colorkey(ALPHA)
+            img.set_colorkey(black)
             # transform.scale(img, (scale up x, scale up y)
-            img = pygame.transform.scale(img, (100, 100))
-            self.images.append(img)
+            img = pygame.transform.scale(img, (16*scale, 16*scale))
+            self.images_idle.append(img)
 
+        # running sprites
+        for i in range(0, 6):
+            img = pygame.image.load(os.path.join('images', 'knight_run_anim_f' + str(i) + '.png')).convert()
+            img.convert_alpha()
+            img.set_colorkey(black)
+            img = pygame.transform.scale(img, (16*scale, 16*scale))
+            self.images_run.append(img)
 
-           # self.frame = 0
-        self.image = self.images[0]
+        self.frame = 0
+        self.image = self.images_idle[self.frame]
         self.rect = self.image.get_rect()
 
     def control(self, x, y):
@@ -44,25 +49,59 @@ class Player(pygame.sprite.Sprite):
         # movement animation here ...
 
         if self.move_x == 0:
-            self.frame = 0
-            self.image = self.images[self.frame]
+            self.frame += 1
+            if self.frame >= len(self.images_idle):
+                self.frame = 0
+            if self.facing == 0:
+                self.image = self.images_idle[self.frame]
+            # checks last x movement and flips idle ani if needed
+            elif self.facing == 'right':
+                self.image = self.images_idle[self.frame]
+            elif self.facing == 'left':
+                self.image = pygame.transform.flip(self.images_idle[self.frame], True, False)
+
+        if self.move_y < 0:
+            self.frame += 1
+            if self.frame >= len(self.images_run):
+                self.frame = 0
+            if self.facing == 0:
+                self.image = self.images_run[self.frame]
+            elif self.facing == 'right':
+                self.image = self.images_run[self.frame]
+            elif self.facing == 'left':
+                self.image = pygame.transform.flip(self.images_run[self.frame], True, False)
+
+        if self.move_y > 0:
+            self.frame += 1
+            if self.frame >= len(self.images_run):
+                self.frame = 0
+            if self.facing == 0:
+                self.image = self.images_run[self.frame]
+            elif self.facing == 'right':
+                self.image = self.images_run[self.frame]
+            elif self.facing == 'left':
+                self.image = pygame.transform.flip(self.images_run[self.frame], True, False)
 
         if self.move_x > 0:
-           self.frame = 1
-           self.image = self.images[self.frame]
+            self.frame += 1
+            if self.frame >= len(self.images_run):
+                self.frame = 0
+            self.image = self.images_run[self.frame]
+            self.facing = 'right'
 
         if self.move_x < 0:
-            self.frame = 2
-            self.image = self.images[self.frame]
+            self.frame += 1
+            if self.frame >= len(self.images_run):
+                self.frame = 0
+            self.image = pygame.transform.flip(self.images_run[self.frame], True, False)
+            self.facing = 'left'
 
 
-'''
-Setup
-'''
-
-world_x = 960
-world_y = 720
-fps = 60
+# Setup
+scale = 50
+world_x = 16*scale
+world_y = 16*scale
+fps = 30
 clock = pygame.time.Clock()
 pygame.init()
 
@@ -72,6 +111,7 @@ world = pygame.display.set_mode([world_x, world_y])
 #backdropbox = world.get_rect()
 
 ALPHA = (255, 255, 255)
+black = (0, 0, 0)
 BLACK = (23, 23, 23)
 # Player setup
 player = Player()
@@ -83,9 +123,6 @@ steps = 5
 
 
 main = True
-'''
-Main Loop
-'''
 
 while main:
 
@@ -115,7 +152,7 @@ while main:
                 player.control(0, -steps)
 
 
-    #world.blit(backdrop, backdropbox)
+    # world.blit(backdrop, backdropbox)
     world.fill(BLACK)
     player.update()
     player_list.draw(world)
