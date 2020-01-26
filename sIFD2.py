@@ -1,5 +1,4 @@
 import pygame
-from pygame.locals import *
 import sys
 import os
 
@@ -98,21 +97,22 @@ class Player(pygame.sprite.Sprite):
 
 
 # Setup
-scale = 50
-world_x = 16*scale
-world_y = 16*scale
+
+world_x = 1024
+world_y = 768
+TILESIZE = 32
 fps = 30
 clock = pygame.time.Clock()
 pygame.init()
 
-
 world = pygame.display.set_mode([world_x, world_y])
-#backdrop = pygame.image.load(os.path.join('images', 'green.png')).convert()
-#backdropbox = world.get_rect()
+# backdrop = pygame.image.load(os.path.join('images', 'green.png')).convert()
+# backdropbox = world.get_rect()
 
 ALPHA = (255, 255, 255)
 black = (0, 0, 0)
 BLACK = (23, 23, 23)
+LIGHTGREY = (100, 100, 100)
 # Player setup
 player = Player()
 player.rect.x = world_x/2
@@ -128,7 +128,8 @@ while main:
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            pygame.quit(); sys.exit()
+            pygame.quit()
+            sys.exit()
             main = False
 
         if event.type == pygame.KEYDOWN:
@@ -151,9 +152,14 @@ while main:
             if event.key == pygame.K_DOWN or event.key == ord('s'):
                 player.control(0, -steps)
 
-
     # world.blit(backdrop, backdropbox)
+    # Fill world background colour
     world.fill(BLACK)
+    # Draw gridlines on world
+    for x in range(0, world_x, TILESIZE):
+        pygame.draw.line(world, LIGHTGREY, (x, 0), (x, world_y))
+    for y in range(0, world_y, TILESIZE):
+        pygame.draw.line(world, LIGHTGREY, (0, y), (world_x, y))
     player.update()
     player_list.draw(world)
     pygame.display.flip()
