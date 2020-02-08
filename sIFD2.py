@@ -1,126 +1,54 @@
 import pygame
 import sys
-import os
-
-
-class Player(pygame.sprite.Sprite):
-    def __init__(self):
-        pygame.sprite.Sprite.__init__(self)
-        self.move_x = 0
-        self.move_y = 0
-        self.frame = 0
-        self.images_idle = []
-        self.facing = 0
-        # empty list for right animations
-        self.images_run = []
-        # img scaling factor
-        scale = 5
-
-        for i in range(0, 6):
-            img = pygame.image.load(os.path.join('images', 'knight_idle_anim_f' + str(i) + '.png')).convert()
-            img.convert_alpha()
-            img.set_colorkey(black)
-            # transform.scale(img, (scale up x, scale up y)
-            img = pygame.transform.scale(img, (16*scale, 16*scale))
-            self.images_idle.append(img)
-
-        # running sprites
-        for i in range(0, 6):
-            img = pygame.image.load(os.path.join('images', 'knight_run_anim_f' + str(i) + '.png')).convert()
-            img.convert_alpha()
-            img.set_colorkey(black)
-            img = pygame.transform.scale(img, (16*scale, 16*scale))
-            self.images_run.append(img)
-
-        self.frame = 0
-        self.image = self.images_idle[self.frame]
-        self.rect = self.image.get_rect()
-
-    def control(self, x, y):
-        # player movement
-        self.move_x += x
-        self.move_y += y
-
-    def update(self):
-        # update player position
-        self.rect.x = self.rect.x + self.move_x
-        self.rect.y = self.rect.y + self.move_y
-        # movement animation here ...
-
-        if self.move_x == 0:
-            self.frame += 1
-            if self.frame >= len(self.images_idle):
-                self.frame = 0
-            if self.facing == 0:
-                self.image = self.images_idle[self.frame]
-            # checks last x movement and flips idle ani if needed
-            elif self.facing == 'right':
-                self.image = self.images_idle[self.frame]
-            elif self.facing == 'left':
-                self.image = pygame.transform.flip(self.images_idle[self.frame], True, False)
-
-        if self.move_y < 0:
-            self.frame += 1
-            if self.frame >= len(self.images_run):
-                self.frame = 0
-            if self.facing == 0:
-                self.image = self.images_run[self.frame]
-            elif self.facing == 'right':
-                self.image = self.images_run[self.frame]
-            elif self.facing == 'left':
-                self.image = pygame.transform.flip(self.images_run[self.frame], True, False)
-
-        if self.move_y > 0:
-            self.frame += 1
-            if self.frame >= len(self.images_run):
-                self.frame = 0
-            if self.facing == 0:
-                self.image = self.images_run[self.frame]
-            elif self.facing == 'right':
-                self.image = self.images_run[self.frame]
-            elif self.facing == 'left':
-                self.image = pygame.transform.flip(self.images_run[self.frame], True, False)
-
-        if self.move_x > 0:
-            self.frame += 1
-            if self.frame >= len(self.images_run):
-                self.frame = 0
-            self.image = self.images_run[self.frame]
-            self.facing = 'right'
-
-        if self.move_x < 0:
-            self.frame += 1
-            if self.frame >= len(self.images_run):
-                self.frame = 0
-            self.image = pygame.transform.flip(self.images_run[self.frame], True, False)
-            self.facing = 'left'
-
+import characters
+from settings import *
+import world
 
 # Setup
-
-world_x = 1024
-world_y = 768
-TILESIZE = 32
-fps = 30
-clock = pygame.time.Clock()
 pygame.init()
 
-world = pygame.display.set_mode([world_x, world_y])
-# backdrop = pygame.image.load(os.path.join('images', 'green.png')).convert()
-# backdropbox = world.get_rect()
+# fps
+clock = pygame.time.Clock()
+font = pygame.font.SysFont('Arial', 18)
 
-ALPHA = (255, 255, 255)
-black = (0, 0, 0)
-BLACK = (23, 23, 23)
-LIGHTGREY = (100, 100, 100)
+def update_fps():
+    fps = str(int(clock.get_fps()))
+    fps_text = font.render(fps, 1, pygame.Color('green'))
+    return fps_text
+# set screen size
+screen = pygame.display.set_mode([screen_width, screen_height])
+
 # Player setup
-player = Player()
-player.rect.x = world_x/2
-player.rect.y = world_y/2
+player = characters.Player()
+player.rect.x = screen_width/2
+player.rect.y = screen_height/2
 player_list = pygame.sprite.Group()
 player_list.add(player)
 steps = 5
 
+
+# background
+
+# Fill world background colour
+screen.fill(BLACK)
+
+# Draw gridlines on world
+for x in range(0, screen_width, TILESIZE):
+    pygame.draw.line(screen, LIGHTGREY, (x, 0), (x, screen_height))
+for y in range(0, screen_height, TILESIZE):
+    pygame.draw.line(screen, LIGHTGREY, (0, y), (screen_width, y))
+
+# draw walls
+x = y = 0
+for row in level:
+    y += 16 * 2
+    x = 0
+    for col in row:
+        x += 16 * 2
+        if col == 'w':
+            screen.blit(world.world_map(), (x-16*2, y-16*2))
+
+            pygame.display.update()
 
 main = True
 
@@ -152,15 +80,11 @@ while main:
             if event.key == pygame.K_DOWN or event.key == ord('s'):
                 player.control(0, -steps)
 
-    # world.blit(backdrop, backdropbox)
-    # Fill world background colour
-    world.fill(BLACK)
-    # Draw gridlines on world
-    for x in range(0, world_x, TILESIZE):
-        pygame.draw.line(world, LIGHTGREY, (x, 0), (x, world_y))
-    for y in range(0, world_y, TILESIZE):
-        pygame.draw.line(world, LIGHTGREY, (0, y), (world_x, y))
+    # screen.blit(world.world_map(), (0, 0))
+    # draw player on top
     player.update()
-    player_list.draw(world)
-    pygame.display.flip()
+    player_list.draw(screen)
+    screen.blit(update_fps(), (16*3, 16*3))
+
+    pygame.display.update()
     clock.tick(fps)
