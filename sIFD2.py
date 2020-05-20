@@ -3,9 +3,13 @@ import sys
 import characters
 from settings import *
 import world
+import os
 
 # Setup
 pygame.init()
+
+# set screen size
+screen = pygame.display.set_mode([screen_width, screen_height])
 
 # fps
 clock = pygame.time.Clock()
@@ -15,40 +19,38 @@ def update_fps():
     fps = str(int(clock.get_fps()))
     fps_text = font.render(fps, 1, pygame.Color('green'))
     return fps_text
-# set screen size
-screen = pygame.display.set_mode([screen_width, screen_height])
+
+# background
+def grid():
+    for x in range(0, screen_width, TILESIZE):
+        pygame.draw.line(screen, LIGHTGREY, (x, 0), (x, screen_height))
+    for y in range(0, screen_height, TILESIZE):
+        pygame.draw.line(screen, LIGHTGREY, (0, y), (screen_width, y))
+
+# draw walls
+def bgd():
+    screen.fill(BLACK)
+    screen.blit(update_fps(), (16*3, 16*3))
+    grid()
+    x = y = 0
+    for row in level:
+        y += 16 * 2
+        x = 0
+        for col in row:
+            x += 16 * 2
+            if col == 'w':
+                screen.blit(world.world_map(), (x-16*2, y-16*2))
+
+    pygame.display.update()
 
 # Player setup
 player = characters.Player()
 player.rect.x = screen_width/2
 player.rect.y = screen_height/2
-player_list = pygame.sprite.Group()
-player_list.add(player)
+player_list = pygame.sprite.LayeredDirty(player)
+player_list.clear(screen, bgd())
+
 steps = 5
-
-
-# background
-
-# Fill world background colour
-screen.fill(BLACK)
-
-# Draw gridlines on world
-for x in range(0, screen_width, TILESIZE):
-    pygame.draw.line(screen, LIGHTGREY, (x, 0), (x, screen_height))
-for y in range(0, screen_height, TILESIZE):
-    pygame.draw.line(screen, LIGHTGREY, (0, y), (screen_width, y))
-
-# draw walls
-x = y = 0
-for row in level:
-    y += 16 * 2
-    x = 0
-    for col in row:
-        x += 16 * 2
-        if col == 'w':
-            screen.blit(world.world_map(), (x-16*2, y-16*2))
-
-            pygame.display.update()
 
 main = True
 
@@ -80,11 +82,10 @@ while main:
             if event.key == pygame.K_DOWN or event.key == ord('s'):
                 player.control(0, -steps)
 
-    # screen.blit(world.world_map(), (0, 0))
-    # draw player on top
+    # create player, put in bgd(), draw player on screen
     player.update()
-    player_list.draw(screen)
-    screen.blit(update_fps(), (16*3, 16*3))
+    bgd()
+    rects = player_list.draw(screen)
+    pygame.display.update(rects)
 
-    pygame.display.update()
     clock.tick(fps)

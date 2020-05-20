@@ -3,9 +3,9 @@ import os
 from settings import *
 
 
-class Player(pygame.sprite.Sprite):
+class Player(pygame.sprite.DirtySprite):
     def __init__(self):
-        pygame.sprite.Sprite.__init__(self)
+        pygame.sprite.DirtySprite.__init__(self)
         self.move_x = 0
         self.move_y = 0
         self.frame = 0
@@ -44,6 +44,7 @@ class Player(pygame.sprite.Sprite):
         # update player position
         self.rect.x = self.rect.x + self.move_x
         self.rect.y = self.rect.y + self.move_y
+        self.dirty = 1
         # movement animation here ...
 
         if self.move_x == 0:
