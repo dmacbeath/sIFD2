@@ -20,6 +20,7 @@ def update_fps():
     fps_text = font.render(fps, 1, pygame.Color('green'))
     return fps_text
 
+
 # background
 def grid():
     for x in range(0, screen_width, TILESIZE):
@@ -30,18 +31,38 @@ def grid():
 # draw walls
 def bgd():
     screen.fill(BLACK)
-    screen.blit(update_fps(), (16*3, 16*3))
     grid()
-    x = y = 0
-    for row in level:
-        y += 16 * 2
-        x = 0
-        for col in row:
-            x += 16 * 2
-            if col == 'w':
-                screen.blit(world.world_map(), (x-16*2, y-16*2))
+    screen.blit(update_fps(), (16*3, 16*3))
 
-    pygame.display.update()
+#def fps_view():
+#    pygame.display.update()
+
+
+
+# Turn walls into rect objects
+class Wall(object):
+
+    def __init__(self, pos):
+        walls.append(self)
+        self.rect = pygame.Rect(pos[0], pos[1], 16, 16)
+
+walls = []
+#def wall_map():
+x = y = 0
+for row in level:
+    y += 16 * 2
+    x = 0
+    for col in row:
+        x += 16 * 2
+        if col == 'w':
+            #screen.blit(world.world_map(), (x-16*2, y-16*2))
+            Wall((x-16*2, y-16*2))
+
+#pygame.display.update()
+
+
+
+#wall_map()
 
 # Player setup
 player = characters.Player()
@@ -82,10 +103,19 @@ while main:
             if event.key == pygame.K_DOWN or event.key == ord('s'):
                 player.control(0, -steps)
 
+
     # create player, put in bgd(), draw player on screen
     player.update()
     bgd()
+
+    for wall in walls:
+        # blit background and walls on map
+        screen.blit(world.world_map(), wall)
+        player.checkCollision(wall)
+
+
     rects = player_list.draw(screen)
+
     pygame.display.update(rects)
 
     clock.tick(fps)

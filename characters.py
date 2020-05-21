@@ -2,7 +2,6 @@ import pygame
 import os
 from settings import *
 
-
 class Player(pygame.sprite.DirtySprite):
     def __init__(self):
         pygame.sprite.DirtySprite.__init__(self)
@@ -40,13 +39,24 @@ class Player(pygame.sprite.DirtySprite):
         self.move_x += x
         self.move_y += y
 
+    def checkCollision(self, target):
+        if self.rect.colliderect(target):
+            if self.move_x > 0:
+                self.rect.right = target.rect.left
+            if self.move_x < 0:
+                self.rect.left = target.rect.right
+            if self.move_y > 0:
+                self.rect.bottom = target.rect.top
+            if self.move_y < 0:
+               self.rect.top = target.rect.bottom
+
     def update(self):
         # update player position
         self.rect.x = self.rect.x + self.move_x
         self.rect.y = self.rect.y + self.move_y
         self.dirty = 1
-        # movement animation here ...
 
+        # movement animation here ...
         if self.move_x == 0:
             self.frame += 1
             if self.frame >= len(self.images_idle):
