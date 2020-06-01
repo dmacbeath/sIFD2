@@ -1,15 +1,35 @@
-# Collision
-  - ~Turn walls in rect~
-    - ~turn every wall into rect~
-  - ~use rect.colliderect(wall.rect) to check if true~
-  - collision in corners bug out
+# Animations
+  - [ ] Player idle
+  - [ ] Player running
+  - [ ] Mob idle
+  - [ ] Mob running
 
-# FPS text
+# Level Design
+  - [ ] Make walls nicer
 
-# Projectiles
+# Spawning
+  - [ ] Spawning rates
 
-# Enemies
+# Mob types
+  - [ ] Normal
+  - [ ] Bruiser
+  - [ ] Ranged
 
-# Health Bar
+# Weapons
+  - [ ] Pistol
+  - [ ] Rapid gun
+  - [ ] Shotgun
+  - [ ] Bombs
 
-# Sprites
+# UI
+  - [ ] Shrink map?
+  - [x] On screen status
+    - [x] Player health
+    - [x] Number of mobs left
+
+# ~Start screen~
+
+# ~Game over screen~
+
+# Level screen
+- [ ] wave number

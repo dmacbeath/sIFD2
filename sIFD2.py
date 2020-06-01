@@ -1,121 +1,222 @@
 import pygame
 import sys
-import characters
+from sprites import *
 from settings import *
-import world
+from tilemap import *
 import os
 
-# Setup
-pygame.init()
+# HUD functions
 
-# set screen size
-screen = pygame.display.set_mode([screen_width, screen_height])
+def draw_player_health(surf, x, y, pct):
+    if pct < 0:
+        pct = 0
+    BAR_LENGTH = 100
+    BAR_HEIGHT = 20
+    fill = pct * BAR_LENGTH
+    outline_rect = pygame.Rect(x, y, BAR_LENGTH, BAR_HEIGHT)
+    fill_rect = pygame.Rect(x, y, fill, BAR_HEIGHT)
+    if pct > 0.6:
+        col = GREEN
+    elif pct > 0.3:
+        col = YELLOW
+    else:
+        col = RED
+    pygame.draw.rect(surf, col, fill_rect)
+    pygame.draw.rect(surf, WHITE, outline_rect, 2)
 
-# fps
-clock = pygame.time.Clock()
-font = pygame.font.SysFont('Arial', 18)
+class Game:
+    def __init__(self):
+        pygame.init()
+        self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
+        self.clock = pygame.time.Clock()
+        pygame.key.set_repeat(500, 100)
+        self.load_data()
 
-def update_fps():
-    fps = str(int(clock.get_fps()))
-    fps_text = font.render(fps, 1, pygame.Color('green'))
-    return fps_text
+    def draw_text(self, text, font_name, size, color, x, y, align='nw'):
+        font = pygame.font.Font(font_name, size)
+        text_surface = font.render(text, True, color)
+        text_rect = text_surface.get_rect()
+        if align == 'nw':
+            text_rect.topleft = (x, y)
+        if align == 'ne':
+            text_rect.topright = (x, y)
+        if align == 'sw':
+            text_rect.bottomleft = (x, y)
+        if align == 'se':
+            text_rect.bottomright = (x, y)
+        if align == 'n':
+            text_rect.midtop = (x, y)
+        if align == 's':
+            text_rect.midbottom = (x, y)
+        if align == 'e':
+            text_rect.midright = (x, y)
+        if align == 'w':
+            text_rect.midleft = (x, y)
+        if align == 'center':
+            text_rect.center = (x, y)
+        self.screen.blit(text_surface, text_rect)
 
+    def load_data(self):
+        self.player_img = pygame.image.load(os.path.join('images', PLAYER_IMG)).convert_alpha()
+        self.mob_img = pygame.image.load(os.path.join('images', MOB_IMG)).convert_alpha()
+        self.bullet_img = pygame.image.load(os.path.join('images', BULLET_IMG)).convert_alpha()
+        self.wall_img = pygame.image.load(os.path.join('images', WALL_IMG)).convert_alpha()
+        self.treasure_img = pygame.image.load(os.path.join('images', TREASURE_IMG)).convert_alpha()
+        self.blood_img = pygame.image.load(os.path.join('images', BLOOD_IMG)).convert_alpha()
+        self.item_img = pygame.image.load(os.path.join('images', HEALTH_POTION_IMG)).convert_alpha()
+        self.font = os.path.join('images', 'BitPotionExt.ttf')
+        self.dim_screen = pygame.Surface(self.screen.get_size()).convert_alpha()
+        self.dim_screen.fill((0, 0, 0, 180))
 
-# background
-def grid():
-    for x in range(0, screen_width, TILESIZE):
-        pygame.draw.line(screen, LIGHTGREY, (x, 0), (x, screen_height))
-    for y in range(0, screen_height, TILESIZE):
-        pygame.draw.line(screen, LIGHTGREY, (0, y), (screen_width, y))
-
-# draw walls
-def bgd():
-    screen.fill(BLACK)
-    grid()
-    screen.blit(update_fps(), (16*3, 16*3))
-
-#def fps_view():
-#    pygame.display.update()
-
-
-
-# Turn walls into rect objects
-class Wall(object):
-
-    def __init__(self, pos):
-        walls.append(self)
-        self.rect = pygame.Rect(pos[0], pos[1], 16, 16)
-
-walls = []
-#def wall_map():
-x = y = 0
-for row in level:
-    y += 16 * 2
-    x = 0
-    for col in row:
-        x += 16 * 2
-        if col == 'w':
-            #screen.blit(world.world_map(), (x-16*2, y-16*2))
-            Wall((x-16*2, y-16*2))
-
-#pygame.display.update()
-
-
-
-#wall_map()
-
-# Player setup
-player = characters.Player()
-player.rect.x = screen_width/2
-player.rect.y = screen_height/2
-player_list = pygame.sprite.LayeredDirty(player)
-player_list.clear(screen, bgd())
-
-steps = 5
-
-main = True
-
-while main:
-
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            pygame.quit()
-            sys.exit()
-            main = False
-
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_LEFT or event.key == ord('a'):
-                player.control(-steps, 0)
-            if event.key == pygame.K_RIGHT or event.key == ord('d'):
-                player.control(steps, 0)
-            if event.key == pygame.K_UP or event.key == ord('w'):
-                player.control(0, -steps)
-            if event.key == pygame.K_DOWN or event.key == ord('s'):
-                player.control(0, steps)
-
-        if event.type == pygame.KEYUP:
-            if event.key == pygame.K_LEFT or event.key == ord('a'):
-                player.control(steps, 0)
-            if event.key == pygame.K_RIGHT or event.key == ord('d'):
-                player.control(-steps, 0)
-            if event.key == pygame.K_UP or event.key == ord('w'):
-                player.control(0, steps)
-            if event.key == pygame.K_DOWN or event.key == ord('s'):
-                player.control(0, -steps)
+    def new(self):
+        self.map = Map('map.txt')
+        self.all_sprites = pygame.sprite.LayeredUpdates()
+        self.walls = pygame.sprite.Group()
+        self.mobs = pygame.sprite.Group()
+        self.mobs = pygame.sprite.Group()
+        self.bullets = pygame.sprite.Group()
+        self.items = pygame.sprite.Group()
+        # Must spawn player first as Mob needs the player entity for its search function
+        for row, tiles in enumerate(self.map.data):
+            for col, tile in enumerate(tiles):
+                if tile == 'p':
+                    self.player = Player(self, col, row)
+        for row, tiles in enumerate(self.map.data):
+            for col, tile in enumerate(tiles):
+                if tile == 'w':
+                    Wall(self, col, row)
+                if tile == 'm':
+                    Mob(self, col, row)
+                if tile == 't':
+                    Treasure(self, col, row)
+                if tile == 'h':
+                    Item(self, col, row)
+        self.camera = Camera(self.map.width, self.map.height)
+        self.paused = False
 
 
-    # create player, put in bgd(), draw player on screen
-    player.update()
-    bgd()
+    def run(self):
+        self.playing = True
+        while self.playing:
+            self.dt = self.clock.tick(fps) / 1000
+            self.events()
+            if not self.paused:
+                self.update()
+            self.draw()
 
-    for wall in walls:
-        # blit background and walls on map
-        screen.blit(world.world_map(), wall)
-        player.checkCollision(wall)
+    def quit(self):
+        pygame.quit()
+        sys.exit()
 
+    def update(self):
+        self.all_sprites.update()
+        self.camera.update(self.player)
+        # game over
+        if len(self.mobs) == 0:
+            self.playing = False
+        # player hits items
+        hits = pygame.sprite.spritecollide(self.player, self.items, False)
+        for hit in hits:
+            if self.player.health < PLAYER_HEALTH:
+                hit.kill()
+                self.player.add_health(HEALTH_POTION_AMOUNT)
+        # mobs hit player
+        hits = pygame.sprite.spritecollide(self.player, self.mobs, False, collide_hit_rect)
+        for hit in hits:
+            self.player.health -= MOB_DAMAGE
+            hit.vel = vec(0, 0)
+            if self.player.health <= 0:
+                self.playing = False
+            if hits:
+                self.player.pos += vec(MOB_KNOCKBACK, 0).rotate(-hits[0].rot)
+        # bullets hit mobs
+        hits = pygame.sprite.groupcollide(self.mobs, self.bullets, False, True)
+        for hit in hits:
+            hit.health -= BULLET_DAMAGE
+            hit.vel = vec(0, 0)
 
-    rects = player_list.draw(screen)
+    def draw_grid(self):
+        for x in range(0, WIDTH, TILESIZE):
+            pygame.draw.line(self.screen, LIGHTGREY, (x, 0), (x, HEIGHT))
+        for y in range(0, HEIGHT, TILESIZE):
+            pygame.draw.line(self.screen, LIGHTGREY, (0, y), (WIDTH, y))
 
-    pygame.display.update(rects)
+    def draw(self):
+        #pygame.display.set_caption(TITLE)
+        pygame.display.set_caption('{:.2f}'.format(self.clock.get_fps()))
+        self.screen.fill(BLACK)
+        #self.draw_grid()
 
-    clock.tick(fps)
+        # HUD functions
+        for sprite in self.all_sprites:
+            if isinstance(sprite, Mob):
+                sprite.draw_health()
+            self.screen.blit(sprite.image, self.camera.apply(sprite))
+        self.draw_text('Mobs: {}'.format(len(self.mobs)), self.font, 50, RED, WIDTH-10, 10, align='ne')
+            # view hit box
+        #pygame.draw.rect(self.screen, RED, self.camera.apply(self.player), 2)
+        #pygame.draw.rect(self.screen, RED, self.player.hit_rect, 2)
+        draw_player_health(self.screen, 10, 10, self.player.health / PLAYER_HEALTH )
+        if self.paused:
+            self.screen.blit(self.dim_screen, (0, 0))
+            self.draw_text('Paused', self.font, 200, RED, WIDTH / 2, HEIGHT / 32 + 24 , align='center')
+            self.draw_text('w   up', self.font, 100, RED, WIDTH / 2 - 3*64, HEIGHT / 32 + 5*24, align='nw')
+            self.draw_text('s   down', self.font, 100, RED, WIDTH / 2 - 3*64, HEIGHT / 32 + 8*24, align='nw')
+            self.draw_text('a   left', self.font, 100, RED, WIDTH / 2 - 3*64, HEIGHT / 32 + 11*24, align='nw')
+            self.draw_text('d   right', self.font, 100, RED, WIDTH / 2 - 3*64, HEIGHT / 32 + 14*24, align='nw')
+            self.draw_text('arrow keys   shoot', self.font, 100, RED, WIDTH / 2 - 3*64, HEIGHT / 32 + 17*24, align='nw')
+            self.draw_text('escape   quit', self.font, 100, RED, WIDTH / 2 - 3*64, HEIGHT / 32 + 20*24, align='nw')
+            self.draw_text('p   pause', self.font, 100, RED, WIDTH / 2 - 3*64, HEIGHT / 32 + 23*24, align='nw')
+
+        pygame.display.flip()
+
+    def update_fps(self):
+        fps = str(int(clock.get_fps()))
+        font = pygame.font.SysFont('Arial', 18)
+        fps_text = font.render(fps, 1, pygame.Color('green'))
+        return fps_text
+
+    def events(self):
+        # catch all events here
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                self.quit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    self.quit()
+                if event.key == pygame.K_p:
+                    self.paused = not self.paused
+
+    def show_start_screen(self):
+        self.screen.fill(BLACK)
+        self.draw_text('sIFD2', self.font, 200, RED, WIDTH / 2, HEIGHT / 2, align='center')
+        self.draw_text('Press SPACE to start', self.font, 75, WHITE, WIDTH / 2, HEIGHT * 3 / 4, align='center')
+        pygame.display.flip()
+        self.wait_for_key()
+
+    def show_go_screen(self):
+        self.screen.fill(BLACK)
+        self.draw_text('GAME OVER', self.font, 200, RED, WIDTH / 2, HEIGHT / 2, align='center')
+        self.draw_text('Press SPACE to start', self.font, 75, WHITE, WIDTH / 2, HEIGHT * 3 / 4, align='center')
+        pygame.display.flip()
+        self.wait_for_key()
+
+    def wait_for_key(self):
+        pygame.event.wait()
+        waiting = True
+        while waiting:
+            self.clock.tick(fps)
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    waiting = False
+                    self.quit()
+                if event.type == pygame.KEYUP:
+                    if event.key == pygame.K_SPACE:
+                        waiting = False
+
+g = Game()
+g.show_start_screen()
+while True:
+    g.new()
+    g.run()
+    g.show_go_screen()
