@@ -9,6 +9,7 @@ TILESIZE = 64
 # 32 tiles across, 24 tiles down
 
 fps = 60
+animation_interval = 30
 
 ALPHA = (255, 255, 255)
 WHITE = (255, 255, 255)
@@ -25,7 +26,8 @@ WALL_IMG = 'wall_top.png'
 # Player settings
 PLAYER_HEALTH = 500
 PLAYER_SPEED = 500
-PLAYER_IMG = 'player.png'
+PLAYER_IMG = ['knight_idle_anim_f0.png', 'knight_idle_anim_f1.png', 'knight_idle_anim_f2.png', 'knight_idle_anim_f3.png', 'knight_idle_anim_f4.png', 'knight_idle_anim_f5.png']
+PLAYER_RUN_IMG = ['knight_run_anim_f0.png', 'knight_run_anim_f1.png', 'knight_run_anim_f2.png', 'knight_run_anim_f3.png', 'knight_run_anim_f4.png', 'knight_run_anim_f5.png']
 PLAYER_HIT_RECT = pygame.Rect(0, 0, 12*4, 12*4)
 BARREL_OFFSET = vec(30, 10)
 
@@ -56,7 +58,7 @@ BLOOD_IMG = 'blood.png'
 BLOOD_DURATION = 2000
 
 # Items
-HEALTH_POTION_IMG = 'health_potion.png'
+HEALTH_POTION_IMG = 'Food.png'
 HEALTH_POTION_AMOUNT = 250
 BOB_RANGE = 30
 BOB_SPEED = 0.4

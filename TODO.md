@@ -1,6 +1,14 @@
+# Main Menu
+  - [ ] Start game button
+  - [ ] Manual
+  - [ ] Highscore
+
+# Level screen
+- [ ] wave number
+
 # Animations
-  - [ ] Player idle
-  - [ ] Player running
+  - [x] Player idle
+  - [x] Player running
   - [ ] Mob idle
   - [ ] Mob running
 
@@ -30,6 +38,3 @@
 # ~Start screen~
 
 # ~Game over screen~
-
-# Level screen
-- [ ] wave number

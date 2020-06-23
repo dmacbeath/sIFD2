@@ -33,8 +33,13 @@ class Player(pygame.sprite.Sprite):
         self.groups = game.all_sprites
         pygame.sprite.Sprite.__init__(self, self.groups)
         self.game = game
-        self.image = game.player_img
-        self.image = pygame.transform.scale(self.image, (TILESIZE, TILESIZE))
+        self.image = game.player_idle_r_img_0
+        self.image_idle_r = [game.player_idle_r_img_1, game.player_idle_r_img_2, game.player_idle_r_img_3, game.player_idle_r_img_4, game.player_idle_r_img_5]
+        self.image_idle_l = [game.player_idle_l_img_1, game.player_idle_l_img_2, game.player_idle_l_img_3, game.player_idle_l_img_4, game.player_idle_l_img_5]
+        self.image_run_r = [game.player_run_r_img_0, game.player_run_r_img_1, game.player_run_r_img_2, game.player_run_r_img_3, game.player_run_r_img_4, game.player_run_r_img_5]
+        self.image_run_l = [game.player_run_l_img_0, game.player_run_l_img_1, game.player_run_l_img_2, game.player_run_l_img_3, game.player_run_l_img_4, game.player_run_l_img_5]
+        self.frame = 0
+        self.facing = 0
         self.rect = self.image.get_rect()
         self.rect.center = (x, y)
         self.hit_rect = PLAYER_HIT_RECT
@@ -44,6 +49,7 @@ class Player(pygame.sprite.Sprite):
         self.last_shot = 0
         self.rot = 0
         self.health = PLAYER_HEALTH
+        self.elasped = 0
 
     def get_keys(self):
         self.vel = vec(0, 0)
@@ -87,6 +93,57 @@ class Player(pygame.sprite.Sprite):
         self.hit_rect.centery = self.pos.y
         collide_with_walls(self, self.game.walls, 'y')
         self.rect.center = self.hit_rect.center
+        # animation speed
+        if pygame.time.get_ticks() - self.elasped > animation_interval:
+            self.elasped = pygame.time.get_ticks()
+            self.animate()
+
+    def animate(self):
+        if self.vel.x == 0:
+            self.frame += 1
+            if self.frame >= len(self.image_idle_r):
+                self.frame = 0
+            self.image = self.image_idle_r[self.frame]
+            if self.facing == 'right':
+                self.image = self.image_idle_r[self.frame]
+            elif self.facing == 'left':
+                self.image = self.image_idle_l[self.frame]
+
+        if self.vel.x > 0:
+            self.frame += 1
+            if self.frame >= len(self.image_run_r):
+                self.frame = 0
+            self.image = self.image_run_r[self.frame]
+            self.facing = 'right'
+
+        if self.vel.x < 0:
+            self.frame += 1
+            if self.frame >= len(self.image_run_l):
+                self.frame = 0
+            self.image = self.image_run_l[self.frame]
+            self.facing = 'left'
+
+        if self.vel.y > 0:
+            self.frame += 1
+            if self.frame >= len(self.image_run_r):
+                self.frame = 0
+            if self.facing == 0:
+                self.image = self.image_run_r[self.frame]
+            elif self.facing == 'right':
+                self.image = self.image_run_r[self.frame]
+            elif self.facing == 'left':
+                self.image = self.image_run_l[self.frame]
+
+        if self.vel.y < 0:
+            self.frame += 1
+            if self.frame >= len(self.image_run_r):
+                self.frame = 0
+            if self.facing == 0:
+                self.image = self.image_run_r[self.frame]
+            elif self.facing == 'right':
+                self.image = self.image_run_r[self.frame]
+            elif self.facing == 'left':
+                self.image = self.image_run_l[self.frame]
 
     def add_health(self, amount):
         self.health += amount

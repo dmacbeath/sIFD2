@@ -57,7 +57,42 @@ class Game:
         self.screen.blit(text_surface, text_rect)
 
     def load_data(self):
-        self.player_img = pygame.image.load(os.path.join('images', PLAYER_IMG)).convert_alpha()
+        self.player_idle_r_img_0 = pygame.image.load(os.path.join('images', PLAYER_IMG[0])).convert_alpha()
+        self.player_idle_r_img_1 = pygame.image.load(os.path.join('images', PLAYER_IMG[1])).convert_alpha()
+        self.player_idle_r_img_2 = pygame.image.load(os.path.join('images', PLAYER_IMG[2])).convert_alpha()
+        self.player_idle_r_img_3 = pygame.image.load(os.path.join('images', PLAYER_IMG[3])).convert_alpha()
+        self.player_idle_r_img_4 = pygame.image.load(os.path.join('images', PLAYER_IMG[4])).convert_alpha()
+        self.player_idle_r_img_5 = pygame.image.load(os.path.join('images', PLAYER_IMG[5])).convert_alpha()
+        self.player_idle_r_img_0 = pygame.transform.scale(self.player_idle_r_img_0, (TILESIZE, TILESIZE))
+        self.player_idle_r_img_1 = pygame.transform.scale(self.player_idle_r_img_1, (TILESIZE, TILESIZE))
+        self.player_idle_r_img_2 = pygame.transform.scale(self.player_idle_r_img_2, (TILESIZE, TILESIZE))
+        self.player_idle_r_img_3 = pygame.transform.scale(self.player_idle_r_img_3, (TILESIZE, TILESIZE))
+        self.player_idle_r_img_4 = pygame.transform.scale(self.player_idle_r_img_4, (TILESIZE, TILESIZE))
+        self.player_idle_r_img_5 = pygame.transform.scale(self.player_idle_r_img_5, (TILESIZE, TILESIZE))
+        self.player_idle_l_img_0 = pygame.transform.flip(self.player_idle_r_img_0, True, False)
+        self.player_idle_l_img_1 = pygame.transform.flip(self.player_idle_r_img_1, True, False)
+        self.player_idle_l_img_2 = pygame.transform.flip(self.player_idle_r_img_2, True, False)
+        self.player_idle_l_img_3 = pygame.transform.flip(self.player_idle_r_img_3, True, False)
+        self.player_idle_l_img_4 = pygame.transform.flip(self.player_idle_r_img_4, True, False)
+        self.player_idle_l_img_5 = pygame.transform.flip(self.player_idle_r_img_5, True, False)
+        self.player_run_r_img_0 = pygame.image.load(os.path.join('images', PLAYER_RUN_IMG[0])).convert_alpha()
+        self.player_run_r_img_1 = pygame.image.load(os.path.join('images', PLAYER_RUN_IMG[1])).convert_alpha()
+        self.player_run_r_img_2 = pygame.image.load(os.path.join('images', PLAYER_RUN_IMG[2])).convert_alpha()
+        self.player_run_r_img_3 = pygame.image.load(os.path.join('images', PLAYER_RUN_IMG[3])).convert_alpha()
+        self.player_run_r_img_4 = pygame.image.load(os.path.join('images', PLAYER_RUN_IMG[4])).convert_alpha()
+        self.player_run_r_img_5 = pygame.image.load(os.path.join('images', PLAYER_RUN_IMG[5])).convert_alpha()
+        self.player_run_r_img_0 = pygame.transform.scale(self.player_run_r_img_0, (TILESIZE, TILESIZE))
+        self.player_run_r_img_1 = pygame.transform.scale(self.player_run_r_img_1, (TILESIZE, TILESIZE))
+        self.player_run_r_img_2 = pygame.transform.scale(self.player_run_r_img_2, (TILESIZE, TILESIZE))
+        self.player_run_r_img_3 = pygame.transform.scale(self.player_run_r_img_3, (TILESIZE, TILESIZE))
+        self.player_run_r_img_4 = pygame.transform.scale(self.player_run_r_img_4, (TILESIZE, TILESIZE))
+        self.player_run_r_img_5 = pygame.transform.scale(self.player_run_r_img_5, (TILESIZE, TILESIZE))
+        self.player_run_l_img_0 = pygame.transform.flip(self.player_run_r_img_0, True, False)
+        self.player_run_l_img_1 = pygame.transform.flip(self.player_run_r_img_1, True, False)
+        self.player_run_l_img_2 = pygame.transform.flip(self.player_run_r_img_2, True, False)
+        self.player_run_l_img_3 = pygame.transform.flip(self.player_run_r_img_3, True, False)
+        self.player_run_l_img_4 = pygame.transform.flip(self.player_run_r_img_4, True, False)
+        self.player_run_l_img_5 = pygame.transform.flip(self.player_run_r_img_5, True, False)
         self.mob_img = pygame.image.load(os.path.join('images', MOB_IMG)).convert_alpha()
         self.bullet_img = pygame.image.load(os.path.join('images', BULLET_IMG)).convert_alpha()
         self.wall_img = pygame.image.load(os.path.join('images', WALL_IMG)).convert_alpha()
@@ -112,8 +147,8 @@ class Game:
         self.all_sprites.update()
         self.camera.update(self.player)
         # game over
-        if len(self.mobs) == 0:
-            self.playing = False
+        #if len(self.mobs) == 0:
+        #    self.playing = False
         # player hits items
         hits = pygame.sprite.spritecollide(self.player, self.items, False)
         for hit in hits:
