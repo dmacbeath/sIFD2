@@ -4,6 +4,7 @@ from sprites import *
 from settings import *
 from tilemap import *
 import os
+import random
 
 # HUD functions
 
@@ -103,7 +104,7 @@ class Game:
         self.dim_screen = pygame.Surface(self.screen.get_size()).convert_alpha()
         self.dim_screen.fill((0, 0, 0, 180))
 
-    def new(self):
+    def new(self, level):
         self.map = Map('map.txt')
         self.all_sprites = pygame.sprite.LayeredUpdates()
         self.walls = pygame.sprite.Group()
@@ -116,21 +117,26 @@ class Game:
             for col, tile in enumerate(tiles):
                 if tile == 'p':
                     self.player = Player(self, col, row)
+        mob_spawn_list = []
         for row, tiles in enumerate(self.map.data):
             for col, tile in enumerate(tiles):
                 if tile == 'w':
                     Wall(self, col, row)
-                if tile == 'm':
-                    Mob(self, col, row)
+                if tile == '-':
+                    mob_spawn_list.append([col, row])
                 if tile == 't':
                     Treasure(self, col, row)
                 if tile == 'h':
                     Item(self, col, row)
+        # spawn number of mobs equal to level at random possible spawn locations
+        spawn_coords = random.sample(mob_spawn_list, level**2)
+        for i in range(len(spawn_coords)):
+            Mob(self, spawn_coords[i][0], spawn_coords[i][1])
         self.camera = Camera(self.map.width, self.map.height)
         self.paused = False
 
 
-    def run(self):
+    def run(self, level):
         self.playing = True
         while self.playing:
             self.dt = self.clock.tick(fps) / 1000
@@ -138,6 +144,13 @@ class Game:
             if not self.paused:
                 self.update()
             self.draw()
+        if len(self.mobs) == 0:
+            self.show_level_screen()
+        if self.player.health <= 0:
+            self.show_go_screen(level)
+            level = 0
+
+        return level
 
     def quit(self):
         pygame.quit()
@@ -146,9 +159,9 @@ class Game:
     def update(self):
         self.all_sprites.update()
         self.camera.update(self.player)
-        # game over
-        #if len(self.mobs) == 0:
-        #    self.playing = False
+        # game over if no mobs left
+        if len(self.mobs) == 0:
+            self.playing = False
         # player hits items
         hits = pygame.sprite.spritecollide(self.player, self.items, False)
         for hit in hits:
@@ -222,6 +235,8 @@ class Game:
                 if event.key == pygame.K_p:
                     self.paused = not self.paused
 
+
+    # Menu Screens
     def show_start_screen(self):
         self.screen.fill(BLACK)
         self.draw_text('sIFD2', self.font, 200, RED, WIDTH / 2, HEIGHT / 2, align='center')
@@ -229,10 +244,19 @@ class Game:
         pygame.display.flip()
         self.wait_for_key()
 
-    def show_go_screen(self):
+    def show_level_screen(self):
         self.screen.fill(BLACK)
-        self.draw_text('GAME OVER', self.font, 200, RED, WIDTH / 2, HEIGHT / 2, align='center')
-        self.draw_text('Press SPACE to start', self.font, 75, WHITE, WIDTH / 2, HEIGHT * 3 / 4, align='center')
+        self.draw_text(('Wave ' + str(level) + ' Survived'), self.font, 200, RED, WIDTH / 2, HEIGHT / 2, align='center')
+        self.draw_text('Press SPACE to go to next level', self.font, 75, WHITE, WIDTH / 2, HEIGHT * 3 / 4, align='center')
+        pygame.display.flip()
+        self.wait_for_key()
+
+
+    def show_go_screen(self, level):
+        self.screen.fill(BLACK)
+        self.draw_text('Game over', self.font, 200, RED, WIDTH / 2, HEIGHT / 2 - 100, align='center')
+        self.draw_text(('You reached level ' + str(level)), self.font, 100, RED, WIDTH / 2, HEIGHT * 3 / 4 - 100, align='center')
+        self.draw_text('Press SPACE to restart', self.font, 75, WHITE, WIDTH / 2, HEIGHT * 4 / 4 - 100, align='center')
         pygame.display.flip()
         self.wait_for_key()
 
@@ -251,7 +275,9 @@ class Game:
 
 g = Game()
 g.show_start_screen()
+level = 1
 while True:
-    g.new()
-    g.run()
-    g.show_go_screen()
+    g.new(level)
+    #g.run(level)
+    level = 1 + g.run(level)
+    #g.show_go_screen(level)

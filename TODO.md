@@ -1,3 +1,12 @@
+# Spawning
+- [x] Spawning rates
+- ~~before spawning mob, check for possible spawn locations \
+put locations in list and randomise which ones to pick, need coords (col, row) ~~
+- ~~number of spawns is based on level number \
+if mobs == 0 move to next level~~
+- [ ] Spawn over time - not fun if everything spawns all in the beginning
+- [ ] Better Spawn rate
+
 # Main Menu
   - [ ] Start game button
   - [ ] Manual
@@ -5,6 +14,7 @@
 
 # Level screen
 - [ ] wave number
+
 
 # Animations
   - [x] Player idle
@@ -15,8 +25,6 @@
 # Level Design
   - [ ] Make walls nicer
 
-# Spawning
-  - [ ] Spawning rates
 
 # Mob types
   - [ ] Normal

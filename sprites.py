@@ -82,7 +82,8 @@ class Player(pygame.sprite.Sprite):
                 dir = vec(1, 0).rotate(-self.rot)
                 pos = self.pos + BARREL_OFFSET.rotate(-self.rot)
                 Bullet(self.game, pos, dir)
-                self.vel = vec(-KICKBACK, 0).rotate(-self.rot)
+                # knockback setting for player, makes animation flip horizontally due to amatuerish logic
+                # self.vel = vec(-KNOCKBACK, 0).rotate(-self.rot)
 
     def update(self):
         self.get_keys()
