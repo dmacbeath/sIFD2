@@ -100,6 +100,8 @@ class Game:
         self.treasure_img = pygame.image.load(os.path.join('images', TREASURE_IMG)).convert_alpha()
         self.blood_img = pygame.image.load(os.path.join('images', BLOOD_IMG)).convert_alpha()
         self.item_img = pygame.image.load(os.path.join('images', HEALTH_POTION_IMG)).convert_alpha()
+        self.sword_img = pygame.image.load(os.path.join('images', SWORD_IMG)).convert_alpha()
+        self.sword_img = pygame.transform.scale(self.sword_img, (int(TILESIZE / 2), TILESIZE))
         self.font = os.path.join('images', 'BitPotionExt.ttf')
         self.dim_screen = pygame.Surface(self.screen.get_size()).convert_alpha()
         self.dim_screen.fill((0, 0, 0, 180))
@@ -112,6 +114,7 @@ class Game:
         self.mobs = pygame.sprite.Group()
         self.bullets = pygame.sprite.Group()
         self.items = pygame.sprite.Group()
+        self.swords = pygame.sprite.Group()
         # Must spawn player first as Mob needs the player entity for its search function
         for row, tiles in enumerate(self.map.data):
             for col, tile in enumerate(tiles):
@@ -128,6 +131,8 @@ class Game:
                     Treasure(self, col, row)
                 if tile == 'h':
                     Item(self, col, row)
+                if tile == 's':
+                    self.sword = Sword(self, col, row)
         # spawn number of mobs equal to level at random possible spawn locations
         spawn_coords = random.sample(mob_spawn_list, level**2)
         for i in range(len(spawn_coords)):
@@ -141,9 +146,9 @@ class Game:
         while self.playing:
             self.dt = self.clock.tick(fps) / 1000
             self.events()
+            self.draw()
             if not self.paused:
                 self.update()
-            self.draw()
         if len(self.mobs) == 0:
             self.show_level_screen()
         if self.player.health <= 0:
@@ -157,17 +162,26 @@ class Game:
         sys.exit()
 
     def update(self):
+        # sprite interactions defined here
         self.all_sprites.update()
         self.camera.update(self.player)
+        keys = pygame.key.get_pressed()
         # game over if no mobs left
         if len(self.mobs) == 0:
             self.playing = False
+        # Collision detection with sprites done here
         # player hits items
         hits = pygame.sprite.spritecollide(self.player, self.items, False)
         for hit in hits:
             if self.player.health < PLAYER_HEALTH:
                 hit.kill()
                 self.player.add_health(HEALTH_POTION_AMOUNT)
+        # player hits sword
+        hits = pygame.sprite.spritecollide(self.player, self.swords, False)
+        for hit in hits:
+            # E key kills sword in world
+            if keys[pygame.K_e]:
+                hit.kill()
         # mobs hit player
         hits = pygame.sprite.spritecollide(self.player, self.mobs, False, collide_hit_rect)
         for hit in hits:
@@ -183,11 +197,11 @@ class Game:
             hit.health -= BULLET_DAMAGE
             hit.vel = vec(0, 0)
 
-    def draw_grid(self):
-        for x in range(0, WIDTH, TILESIZE):
-            pygame.draw.line(self.screen, LIGHTGREY, (x, 0), (x, HEIGHT))
-        for y in range(0, HEIGHT, TILESIZE):
-            pygame.draw.line(self.screen, LIGHTGREY, (0, y), (WIDTH, y))
+    # def draw_grid(self):
+    #     for x in range(0, WIDTH, TILESIZE):
+    #         pygame.draw.line(self.screen, LIGHTGREY, (x, 0), (x, HEIGHT))
+    #     for y in range(0, HEIGHT, TILESIZE):
+    #         pygame.draw.line(self.screen, LIGHTGREY, (0, y), (WIDTH, y))
 
     def draw(self):
         #pygame.display.set_caption(TITLE)
@@ -201,9 +215,10 @@ class Game:
                 sprite.draw_health()
             self.screen.blit(sprite.image, self.camera.apply(sprite))
         self.draw_text('Mobs: {}'.format(len(self.mobs)), self.font, 50, RED, WIDTH-10, 10, align='ne')
-            # view hit box
-        #pygame.draw.rect(self.screen, RED, self.camera.apply(self.player), 2)
-        #pygame.draw.rect(self.screen, RED, self.player.hit_rect, 2)
+        # view hit box
+        # pygame.draw.rect(self.screen, RED, self.camera.apply(self.player), 2)
+        # pygame.draw.rect(self.screen, RED, self.player.hit_rect, 2)
+        # pygame.draw.rect(self.screen, RED, self.camera.apply(self.sword), 2)
         draw_player_health(self.screen, 10, 10, self.player.health / PLAYER_HEALTH )
         if self.paused:
             self.screen.blit(self.dim_screen, (0, 0))
@@ -215,6 +230,11 @@ class Game:
             self.draw_text('arrow keys   shoot', self.font, 100, RED, WIDTH / 2 - 3*64, HEIGHT / 32 + 17*24, align='nw')
             self.draw_text('escape   quit', self.font, 100, RED, WIDTH / 2 - 3*64, HEIGHT / 32 + 20*24, align='nw')
             self.draw_text('p   pause', self.font, 100, RED, WIDTH / 2 - 3*64, HEIGHT / 32 + 23*24, align='nw')
+        # if player interacts with sword, display text.
+        hits = pygame.sprite.spritecollide(self.player, self.swords, False)
+        for hit in hits:
+            if hits:
+                self.draw_text('press E to pick up', self.font, 50, WHITE, WIDTH / 2, HEIGHT / 32 + 24*5, align='center')
 
         pygame.display.flip()
 

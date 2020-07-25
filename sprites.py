@@ -314,6 +314,33 @@ class Item(pygame.sprite.Sprite):
             self.step = 0
             self.dir *= -1
 
+class Sword(pygame.sprite.Sprite):
+    def __init__(self, game, x, y):
+        self.groups = game.all_sprites, game.swords
+        self._layer = WALL_LAYER
+        pygame.sprite.Sprite.__init__(self, self.groups)
+        self.game = game
+        self.image = game.sword_img
+        self.rect = self.image.get_rect()
+        # self.x = x
+        # self.y = y
+        self.rect.center = (x, y)
+        self.rect.x = x * TILESIZE
+        self.rect.y = y * TILESIZE
+        self.pos = vec(x, y) * TILESIZE
+        self.tween = tween.easeInOutSine
+        self.step = 0
+        self.dir = 1
+
+    def update(self):
+        # bobbing motion
+        offset = BOB_RANGE * (self.tween(self.step / BOB_RANGE) - 0.5)
+        self.rect.centery = self.pos.y + offset * self.dir
+        self.step += BOB_SPEED
+        if self.step > BOB_RANGE:
+            self.step = 0
+            self.dir *= -1
+
  ## animation dragons
 
 # empty list for right animations
